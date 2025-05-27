@@ -1,85 +1,67 @@
-# 🚀 Production-Ready Node.js App with Docker
+# Node.js App with Docker
 
-This is a minimal, fast, and secure Node.js application built with Express and containerized using a **multi-stage Dockerfile** for production deployment.
+This is a simple Node.js application containerized with Docker using a multi-stage build to reduce image size.
 
-## 📁 Project Structure
+## Docker Commands
 
-.
-├── Dockerfile
-├── package.json
-├── package-lock.json
-├── index.js or dist/index.js
-├── .gitignore
-├── .dockerignore
-└── README.md
-
-markdown
-Copy
-Edit
-
-## ⚙️ Prerequisites
-
-- [Node.js](https://nodejs.org/) (for local development)
-- [Docker](https://docs.docker.com/get-docker/) (for containerization)
-- Optional: [pnpm](https://pnpm.io/) for faster dependency installs
-
-## 🚀 Local Development
-
-### Install dependencies:
+### Build the image
 
 ```bash
-npm install
-Run the app:
+docker build -t nodejs-app .
+Run the container
 bash
 Copy
 Edit
-npm start
-Visit: http://localhost:3000
-
-🐳 Docker Deployment
-🔨 Build the Docker Image
-bash
+docker run -p 3000:3000 nodejs-app
+Multi-stage Dockerfile example
+dockerfile
 Copy
 Edit
-docker build -t node-app-prod .
-🚀 Run the Container
-bash
+# Stage 1: Build stage
+FROM node:18 AS build-stage
+
+# Metadata labels (optional)
+LABEL maintainer="your-email@example.com"
+LABEL version="1.0"
+LABEL description="Node.js app multi-stage build"
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy app source code
+COPY . .
+
+# Stage 2: Production stage
+FROM node:18-slim AS production-stage
+
+# Metadata labels (optional)
+LABEL maintainer="your-email@example.com"
+LABEL version="1.0"
+LABEL description="Node.js app production image"
+
+# Set working directory
+WORKDIR /app
+
+# Copy only node_modules and built source from build-stage
+COPY --from=build-stage /app/node_modules ./node_modules
+COPY --from=build-stage /app .
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "index.js"]
+yaml
 Copy
 Edit
-docker run -p 3000:3000 node-app-prod
-Visit: http://localhost:3000
 
-🧱 Dockerfile Breakdown
-This app uses a multi-stage Dockerfile:
+---
 
-Stage	Purpose
-base	Installs Node.js and sets up the project structure
-prod-deps	Installs only production dependencies
-build	Builds the app (e.g., TypeScript output)
-final	Produces a clean, minimal production image
+### Explanation:
 
-🌐 Environment Variables
-To pass environment variables into Docker:
-
-bash
-Copy
-Edit
-docker run -e PORT=3000 -p 3000:3000 node-app-prod
-You can also use a .env file during local development (don’t commit it to Git).
-
-✅ Best Practices Followed
-✅ Multi-stage Docker build
-
-✅ Production-only dependencies in final image
-
-✅ Docker BuildKit caching support
-
-✅ Clean image via .dockerignore
-
-✅ Small and secure production image
-
-📝 License
-MIT — feel free to use, fork, and modify.
-
-🙋‍♂️ Questions?
-Open an issue or reach out. Happy building! 🚀
+- **Stage 1 (build-stage):** Installs all dependencies (including dev dependencies if any), copies all code.
+- **Stage 2 (production-stage):** Uses a smaller base image (`node:18-slim`), copies only necessary files + `node_modules` from build stage, resulting in a slimmer final image.

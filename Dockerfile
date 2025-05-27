@@ -1,32 +1,16 @@
 # Stage 1: Base setup
 FROM node:20-slim AS base
-ENV NPM_HOME="/npm"
-ENV PATH="$NPM_HOME:$PATH"
 WORKDIR /app
 COPY . .
 
-# Stage 2: Install production dependencies only
+# Stage 2: Install production dependencies
 FROM base AS prod-deps
-RUN --mount=type=cache,id=npm,target=/npm/store \
-    npm install --production --frozen-lockfile
+RUN npm install --production
 
-# Stage 3: Build stage (for TypeScript or frontend assets, if needed)
-FROM base AS build
-RUN npm install
-RUN npm run build
-
-# Stage 4: Final minimal image
+# Stage 3: Final lightweight image
 FROM node:20-slim AS final
 WORKDIR /app
-
-# Copy production dependencies
-COPY --from=prod-deps /app/node_modules ./node_modules
-
-# Copy app files
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/dist ./dist
-
-# Environment config and launch
+COPY --from=prod-deps /app /app
 ENV PORT=3000
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+CMD ["node", "index.js"]
