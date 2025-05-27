@@ -6,17 +6,14 @@ This is a simple Node.js application containerized with Docker using a multi-sta
 
 ### Build the image
 
-```bash
 docker build -t nodejs-app .
 Run the container
-bash
-Copy
-Edit
+
 docker run -p 3000:3000 nodejs-app
 Multi-stage Dockerfile example
-dockerfile
-Copy
-Edit
+
+```bash
+
 # Stage 1: Build stage
 FROM node:18 AS build-stage
 
@@ -55,10 +52,6 @@ EXPOSE 3000
 
 # Start the app
 CMD ["node", "index.js"]
-yaml
-Copy
-Edit
-
 ---
 
 ### Explanation:
